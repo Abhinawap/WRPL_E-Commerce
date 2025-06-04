@@ -1,64 +1,40 @@
+import getProduct from "@/actions/get-product";
 import getProducts from "@/actions/get-products";
-import getSizes from "@/actions/get-sizes";
-import getColors from "@/actions/get-colors";
-import getCategory from "@/actions/get-category";
 import Container from "@/app/components/ui/container";
-import Billboard from "@/app/components/billboard";
-import Filter from "./components/filter";
-import NoResults from "@/app/components/ui/no-results";
-import MobileFilters from "./components/mobile-filter";
-import ProductCard from "@/app/components/ui/product-card";
+import Gallery from "@/app/components/gallery";
+import Info from "@/app/components/info";
+import ProductList from "@/app/components/product-list";
 
 export const revalidate = 0;
 
-interface CategoryPageProps {
-  params: Promise<{
-    categoryId: string;
-  }>;
-  searchParams: Promise<{
-    colorId?: string;
-    sizeId?: string;
-  }>;
+interface ProductPageProps {
+  params: Promise<{ productId: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-const CategoryPage = async ({ params, searchParams }: CategoryPageProps) => {
-  const { categoryId } = await params;
-  const { colorId, sizeId } = await searchParams;
+const ProductPage = async ({ params, searchParams }: ProductPageProps) => {
+  const { productId } = await params;
+  const query = await searchParams;
 
-  const products = await getProducts({
-    categoryId,
-    colorId,
-    sizeId,
-  });
-
-  const sizes = await getSizes();
-  const colors = await getColors();
-  const category = await getCategory(categoryId);
+  const product = await getProduct(productId);
+  const suggestedProducts = await getProducts({ categoryId: product?.category?.id });
 
   return (
     <div className="bg-white">
       <Container>
-        <Billboard data={category.billboard} />
-        <div className="px-4 sm:px-6 lg:px-8 pb-24">
-          <div className="lg:grid lg:grid-cols-5 lg:gap-x-8">
-            <MobileFilters sizes={sizes} colors={colors} />
-            <div className="hidden lg:block">
-              <Filter valueKey="sizeId" name="Sizes" data={sizes} />
-              <Filter valueKey="colorId" name="Colors" data={colors} />
-            </div>
-            <div className="mt-6 lg:col-span-4 lg:mt-0">
-              {products.length === 0 && <NoResults />}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {products.map((item) => (
-                  <ProductCard key={item.id} data={item} />
-                ))}
-              </div>
+        <div className="px-4 py-10 sm:px-6 lg:px-8">
+          <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-8">
+            <Gallery images={product.images} />
+            <div className="mt-10 px-4 sm:mt-16 sm:px-0 lg:mt-0">
+              <Info data={product} />
             </div>
           </div>
+          <hr className="my-10" />
+          <ProductList title="Related Products" items={suggestedProducts} />
         </div>
       </Container>
     </div>
   );
 };
 
-export default CategoryPage;
+export default ProductPage;
