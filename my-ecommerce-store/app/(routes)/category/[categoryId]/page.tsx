@@ -8,16 +8,20 @@ import ProductList from "@/app/components/product-list";
 export const revalidate = 0;
 
 interface ProductPageProps {
-  params: Promise<{ productId: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  params: {
+    productId: string;
+  };
+  searchParams: {
+    [key: string]: string | string[] | undefined;
+  };
 }
 
-const ProductPage = async ({ params, searchParams }: ProductPageProps) => {
-  const { productId } = await params;
-  const query = await searchParams;
-
-  const product = await getProduct(productId);
-  const suggestedProducts = await getProducts({ categoryId: product?.category?.id });
+// ✅ Don't use React.FC with async components
+const ProductPage = async ({ params }: ProductPageProps) => {
+  const product = await getProduct(params.productId);
+  const suggestedProducts = await getProducts({
+    categoryId: product?.category?.id,
+  });
 
   return (
     <div className="bg-white">
