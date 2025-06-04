@@ -1,3 +1,5 @@
+// app/(routes)/product/[productId]/page.tsx
+
 import getProduct from "@/actions/get-product";
 import getProducts from "@/actions/get-products";
 import Container from "@/app/components/ui/container";
@@ -16,7 +18,7 @@ interface ProductPageProps {
   };
 }
 
-// ✅ Don't use React.FC with async components
+// ✅ Page component — works with normal (sync) params
 const ProductPage = async ({ params }: ProductPageProps) => {
   const product = await getProduct(params.productId);
   const suggestedProducts = await getProducts({
@@ -42,3 +44,18 @@ const ProductPage = async ({ params }: ProductPageProps) => {
 };
 
 export default ProductPage;
+
+// ✅ Only this function needs async `params`
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ productId: string }>;
+}) {
+  const { productId } = await params;
+  const product = await getProduct(productId);
+
+  return {
+    title: product?.name ?? "Product",
+    description: product?.description ?? "",
+  };
+}
